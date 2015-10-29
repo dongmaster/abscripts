@@ -60,12 +60,32 @@ function click_add_format() {
     var edition_date = info[3];
   }
   
+  var torrents = document.getElementsByClassName("group_torrent");
+  var flac_media = "";
+  
+  for (var i = 0; i < torrents.length; i++) {
+    var torrent_info = torrents[i].getElementsByTagName("td")[0].textContent.trim().split("/");
+    
+    if (/FLAC/.test(torrent_info[0])) {
+      flac_media = torrent_info[2].trim();
+    }
+  }
+  
   console.log(edition_title, edition_date, catalog_number);
   
   if (catalog_number) {
-    save("userscript_cd_info", [edition_title, catalog_number, edition_date])
+    save("userscript_cd_info", {
+      "edition_title": edition_title,
+      "catalog_number": catalog_number,
+      "edition_date": edition_date,
+      "flac_media": flac_media
+    });
   } else {
-    save("userscript_cd_info", [edition_title, edition_date])
+    save("userscript_cd_info", {
+      "edition_title": edition_title,
+      "edition_date": edition_date,
+      "flac_media": flac_media
+    });
   }
  
 }
