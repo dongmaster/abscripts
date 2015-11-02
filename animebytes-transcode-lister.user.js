@@ -57,6 +57,7 @@ automatically open a new tab
 
 */
 
+
 // Default settings
 var settings = {
   "alert_amount_transcodes": {
@@ -85,9 +86,10 @@ var settings = {
   }
 }
 
-/*
-// My personal settings
 
+
+// My personal settings
+/*
 var settings = {
   "alert_amount_transcodes": {
     "enabled": true,
@@ -182,7 +184,7 @@ function scrape() {
       */
       
       i++;
-    }, 2000);
+    }, 1000);
   }
   
   scrape_recurse();
