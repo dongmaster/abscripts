@@ -17,7 +17,20 @@ function auto_fill() {
   var edition_title_input = dd[9].children[0];
   var edition_date_input = dd[11].children[0];
   
-  if (info.length === 3) {
+  if (info["edition_title"]) {
+    edition_title_input.value = info["edition_title"];
+  }
+  
+  if (info["catalog_number"]) {
+    catalog_number_input.value = info["catalog_number"];
+  }
+  
+  if (info["edition_date"]) {
+    edition_date_input.value = info["edition_date"];
+  }
+  
+  /*
+  if (info.length === 4) {
     edition_title_input.value = info["edition_title"];
     catalog_number_input.value = info["catalog_number"];
     edition_date_input.value = info["edition_date"];
@@ -25,6 +38,7 @@ function auto_fill() {
     edition_title_input.value = info["edition_title"];
     edition_date_input.value = info["edition_date"];
   }
+  */
   
   auto_fill_mp3();
 }
