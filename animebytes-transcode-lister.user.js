@@ -369,6 +369,8 @@ function create_settings_menu() {
       "<br>" +
       "Triggers: <input id='auto_opener_triggers' type='text' />" +
       "<br>" +
+      '<span>Comma separated. Example: "0,1" (without quotes) will target torrent groups with 0 and 1 transcodes</span>' +
+      "<br>" +
       
       "<br>" +
       "<h3>Desktop notifications</h3>" +
@@ -376,6 +378,8 @@ function create_settings_menu() {
       "<label> Enabled: <input id='desktop_notifications_aat_enabled' type='checkbox' /> </label>" +
       "<br>" +
       "Triggers: <input id='desktop_notifications_aat_triggers' type='text' />" +
+      "<br>" +
+      '<span>Comma separated. Example: "0,1" (without quotes) will target torrent groups with 0 and 1 transcodes</span>' +
       "<br>" +
       
       "<h4>Notify when finished</h4>" +
