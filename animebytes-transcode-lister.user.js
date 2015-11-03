@@ -59,51 +59,23 @@ automatically open a new tab
 
 
 // Default settings
-var settings = {
-  "alert_amount_transcodes": {
-    "enabled": false,
-    "amount": [0],
-    "volume": 0.5,
-    "sound": get_sound("tuturu")
-  },
-  "alert_when_finished": {
-    "enabled": false,
-    "volume": 0.5,
-    "sound": get_sound("ohmygah")
-  },
-  "auto_opener": {
-    "enabled": false,
-    "triggers": [0]
-  },
-  "desktop_notifications": {
-    "alert_amount_transcodes": {
-      "enabled": true,
-      "triggers": [0]
-    },
-    "alert_when_finished": {
-     "enabled": true
-    }
-  }
-}
-
-
-
-// My personal settings
 /*
 var settings = {
   "alert_amount_transcodes": {
-    "enabled": true,
+    "enabled": false,
     "amount": [0],
-    "volume": 0.4,
-    "sound": get_sound("tuturu")
+    "volume": 0.5,
+    "sound": get_sound("tuturu"),
+    "sound_raw": "tuturu"
   },
   "alert_when_finished": {
-    "enabled": true,
-    "volume": 0.4,
-    "sound": get_sound("ohmygah")
+    "enabled": false,
+    "volume": 0.5,
+    "sound": get_sound("ohmygah"),
+    "sound_raw": "ohmygah"
   },
   "auto_opener": {
-    "enabled": true,
+    "enabled": false,
     "triggers": [0]
   },
   "desktop_notifications": {
@@ -118,6 +90,39 @@ var settings = {
 }
 */
 
+
+
+// My personal settings
+var settings = {
+  "alert_amount_transcodes": {
+    "enabled": true,
+    "amount": [0],
+    "volume": 0.4,
+    "sound": get_sound("tuturu"),
+    "sound_raw": "tuturu"
+  },
+  "alert_when_finished": {
+    "enabled": true,
+    "volume": 0.4,
+    "sound": get_sound("ohmygah"),
+    "sound_raw": "ohmygah"
+  },
+  "auto_opener": {
+    "enabled": false,
+    "triggers": [0]
+  },
+  "desktop_notifications": {
+    "alert_amount_transcodes": {
+      "enabled": true,
+      "triggers": [0]
+    },
+    "alert_when_finished": {
+     "enabled": true
+    }
+  }
+}
+
+
 var media = {
   "icons": {
     "notification_image": "data:image/png;base64,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"
@@ -125,6 +130,9 @@ var media = {
 }
 
 Notification.requestPermission();
+
+load_settings();
+console.log(settings);
 
 var clickable = document.getElementById("content").getElementsByTagName("h2")[0];
 
@@ -137,6 +145,9 @@ audioplayer.volume = settings["alert_amount_transcodes"]["volume"];
 document.body.appendChild(audioplayer);
 
 audioplayer.load();
+
+create_settings_menu();
+initialize_settings();
 
 var xhr = function(u, c, carryover, carryover2, t) {
 	var r = new XMLHttpRequest();
@@ -267,6 +278,8 @@ function notify_transcode_amount(mp3_counter) {
   var transcode_desktop_notifications_triggers = settings["desktop_notifications"]["alert_amount_transcodes"]["triggers"];
   var amount_transcodes_threshold = settings["alert_amount_transcodes"]["amount"];
   
+  console.log((mp3_counter === amount_transcodes_threshold[i] || amount_transcodes_threshold[i] > 2) && transcode_sound_notifications_enabled === true);
+  
   for (var i = 0; i < amount_transcodes_threshold.length; i++) {
     if ((mp3_counter === amount_transcodes_threshold[i] || amount_transcodes_threshold[i] > 2) && transcode_sound_notifications_enabled === true) {
       audioplayer.src = settings["alert_amount_transcodes"]["sound"];
@@ -316,18 +329,278 @@ function notify(body_text, title_text) {
         body: theBody,
         icon: theIcon
     }
+    
     var n = new Notification(theTitle,options);
   }
 
   spawnNotification(body_text, media["icons"]["notification_image"], title_text)
 }
 
+function create_settings_menu() {
+  // This is the navigation element with links to all the numbered pages. Note: Top element, not bottom.
+  var pages = document.getElementById("torrent_table");
+  var pages_parent = pages.parentNode;
+  
+  var settings_menu_container = create_element("DIV");
+  
+  
+  var settings_menu = "<h3>Alert at X amount of transcodes</h3>" +
+      "<label> Enabled: <input id='transcode_amount_alert_enabled' type='checkbox' /> </label>" +
+      "<br>" +
+      "Amount: <input id='transcode_amount_alert_amount' type='text' /> " +
+      "<br>" +
+      "Volume: <input id='transcode_amount_alert_volume' type='text' />" +
+      "<br>" +
+      "Sound: <input id='transcode_amount_alert_sound_raw' type='text' />" +
+      "<br>" +
+      
+      "<br>" +
+      "<h3>Alert when finished</h3>" +
+      "<label> Enabled: <input id='alert_when_finished_enabled' type='checkbox' /> </label>" +
+      "<br>" +
+      "Volume: <input id='alert_when_finished_volume' type='text' />" +
+      "<br>" +
+      "Sound: <input id='alert_when_finished_sound_raw' type='text' />" +
+      "<br>" +
+      
+      "<br>" +
+      "<h3>Auto opener</h3>" +
+      "<label> Enabled: <input id='auto_opener_enabled' type='checkbox' /> </label>" +
+      "<br>" +
+      "Triggers: <input id='auto_opener_triggers' type='text' />" +
+      "<br>" +
+      
+      "<br>" +
+      "<h3>Desktop notifications</h3>" +
+      "<h4>Notify at X amount transcodes</h4>" + 
+      "<label> Enabled: <input id='desktop_notifications_aat_enabled' type='checkbox' /> </label>" +
+      "<br>" +
+      "Triggers: <input id='desktop_notifications_aat_triggers' type='text' />" +
+      "<br>" +
+      
+      "<h4>Notify when finished</h4>" +
+      "<label> Enabled: <input id='desktop_notifications_awf_enabled' type='checkbox' /> </label>" +
+      "<br>" +
+      "<br>" +
+      "<input id='save_settings' type='button' value='Save settings' />";
+  
+  settings_menu_container.innerHTML = settings_menu;
+  
+  var br = create_element("BR");
+  pages_parent.insertBefore(br, pages);
+  pages_parent.insertBefore(settings_menu_container, pages);
+}
+
+function initialize_settings() {
+  /*
+    TRANSCODE AMOUNT ALERT
+  */
+  var taa = "transcode_amount_alert_";
+  
+  var taa_enabled = document.getElementById(taa + "enabled");
+  var taa_amount = document.getElementById(taa + "amount");
+  var taa_volume = document.getElementById(taa + "volume");
+  var taa_sound = document.getElementById(taa + "sound_raw");
+  
+  taa_enabled.checked = settings["alert_amount_transcodes"]["enabled"];
+  taa_amount.value = settings["alert_amount_transcodes"]["amount"];
+  taa_volume.value = settings["alert_amount_transcodes"]["volume"];
+  taa_sound.value = settings["alert_amount_transcodes"]["sound_raw"];
+  
+  
+  /*
+    ALERT WHEN FINISHED
+  */
+  
+  var awf = "alert_when_finished_";
+  
+  var awf_enabled = document.getElementById(awf + "enabled");
+  var awf_volume = document.getElementById(awf + "volume");
+  var awf_sound = document.getElementById(awf + "sound_raw");
+  
+  var awfs = settings["alert_when_finished"];
+  
+  awf_enabled.checked = awfs["enabled"];
+  awf_volume.value = awfs["volume"];
+  awf_sound.value = awfs["sound_raw"];
+  
+  
+  /*
+    AUTO OPENER
+  */
+  
+  var ao = "auto_opener_";
+  
+  var ao_enabled = document.getElementById(ao + "enabled");
+  var ao_triggers = document.getElementById(ao + "triggers")
+  
+  var aos = settings["auto_opener"];
+  
+  ao_enabled.checked = aos["enabled"];
+  ao_triggers.value = aos["triggers"];
+  
+  
+  /*
+    DESKTOP NOTIFICATIONS
+  */
+  
+  // AAT
+  var dnaat = "desktop_notifications_aat_";
+  
+  var dnaat_enabled = document.getElementById(dnaat + "enabled");
+  var dnaat_triggers = document.getElementById(dnaat + "triggers");
+  
+  var dnaats = settings["desktop_notifications"]["alert_amount_transcodes"];
+  
+  dnaat_enabled.checked = dnaats["enabled"];
+  dnaat_triggers.value = dnaats["triggers"];
+  
+  // AWF
+  
+  var dnawf = "desktop_notifications_awf_";
+  
+  var dnawf_enabled = document.getElementById(dnawf + "enabled");
+  
+  var dnawfs = settings["desktop_notifications"]["alert_when_finished"];
+  
+  dnawf_enabled.checked = dnawfs["enabled"];
+  
+  var save_settings_button = document.getElementById("save_settings");
+  
+  save_settings_button.addEventListener("click", function() {
+    save_settings();
+    window.location.reload();
+  }, true);
+  
+}
+
+function save_settings() {
+  var taa = "transcode_amount_alert_";
+  
+  var taa_enabled = document.getElementById(taa + "enabled");
+  var taa_amount = document.getElementById(taa + "amount");
+  var taa_volume = document.getElementById(taa + "volume");
+  var taa_sound_raw = document.getElementById(taa + "sound_raw");
+  
+  var taas = settings["alert_amount_transcodes"];
+  
+  var awf = "alert_when_finished_";
+  
+  var awf_enabled = document.getElementById(awf + "enabled");
+  var awf_volume = document.getElementById(awf + "volume");
+  var awf_sound_raw = document.getElementById(awf + "sound_raw");
+  
+  var awfs = settings["alert_when_finished"];
+  
+  /*
+    AUTO OPENER
+  */
+  
+  var ao = "auto_opener_";
+  
+  var ao_enabled = document.getElementById(ao + "enabled");
+  var ao_triggers = document.getElementById(ao + "triggers")
+  
+  var aos = settings["auto_opener"];
+  
+  /*
+    DESKTOP NOTIFICATIONS
+  */
+  
+  // AAT
+  var dnaat = "desktop_notifications_aat_";
+  
+  var dnaat_enabled = document.getElementById(dnaat + "enabled");
+  var dnaat_triggers = document.getElementById(dnaat + "triggers");
+  
+  var dnaats = settings["desktop_notifications"]["alert_amount_transcodes"];
+  
+  // AWF
+  
+  var dnawf = "desktop_notifications_awf_";
+  
+  var dnawf_enabled = document.getElementById(dnawf + "enabled");
+  
+  var dnawfs = settings["desktop_notifications"]["alert_when_finished"];
+  
+  
+  taas["enabled"] = taa_enabled.checked;
+  taas["amount"] = parseFloat(taa_amount.value);
+  taas["volume"] = parseFloat(taa_volume.value);
+  taas["sound"] = get_sound(taa_sound_raw.value);
+  taas["sound_raw"] = taa_sound_raw.value;
+  
+  awfs["enabled"] = awf_enabled.checked;
+  awfs["volume"] = parseFloat(awf_volume.value);
+  awfs["sound"] = get_sound(awf_sound_raw.value);
+  awfs["sound_raw"] = awf_sound_raw.value;
+  
+  aos["enabled"] = ao_enabled.checked;
+  aos["triggers"] = ao_triggers.value.split(",");
+  
+  dnaats["enabled"] = dnaat_enabled.checked;
+  dnaats["triggers"] = dnaat_triggers.value.split(",");
+  
+  dnawfs["enabled"] = dnawf_enabled.checked;
+  
+  save("userscript_transcode_lister_settings", settings);
+}
+
+function create_element(elem) {
+  // Might be a redundant function
+  var element = document.createElement(elem);
+  
+  return element;
+}
+
 clickable.addEventListener("click", scrape, true);
 
+/*
+var settings = {
+  "alert_amount_transcodes": {
+    "enabled": false,
+    "amount": [0],
+    "volume": 0.5,
+    "sound": get_sound("tuturu")
+  },
+  "alert_when_finished": {
+    "enabled": false,
+    "volume": 0.5,
+    "sound": get_sound("ohmygah")
+  },
+  "auto_opener": {
+    "enabled": false,
+    "triggers": [0]
+  },
+  "desktop_notifications": {
+    "alert_amount_transcodes": {
+      "enabled": true,
+      "triggers": [0]
+    },
+    "alert_when_finished": {
+     "enabled": true
+    }
+  }
+}
+*/
 
+function save(key, value) {
+  localStorage.setItem(key, JSON.stringify(value));
+}
 
+function load(key) {
+  return JSON.parse(localStorage.getItem(key));
+}
 
-
+function load_settings() {
+  if (load("userscript_transcode_lister_settings") === undefined || load("userscript_transcode_lister_settings") === null) {
+    save("userscript_transcode_lister_settings", settings);
+    console.log("saved");
+  } else {
+    settings = load("userscript_transcode_lister_settings");
+    console.log("loaded");
+  }
+}
 
 
 
