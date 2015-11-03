@@ -59,7 +59,6 @@ automatically open a new tab
 
 
 // Default settings
-/*
 var settings = {
   "alert_amount_transcodes": {
     "enabled": false,
@@ -71,6 +70,40 @@ var settings = {
   "alert_when_finished": {
     "enabled": false,
     "volume": 0.5,
+    "sound": get_sound("ohmygah"),
+    "sound_raw": "ohmygah"
+  },
+  "auto_opener": {
+    "enabled": false,
+    "triggers": [0]
+  },
+  "desktop_notifications": {
+    "alert_amount_transcodes": {
+      "enabled": true,
+      "triggers": [0]
+    },
+    "alert_when_finished": {
+     "enabled": true
+    }
+  }
+}
+
+
+
+
+// My personal settings
+/*
+var settings = {
+  "alert_amount_transcodes": {
+    "enabled": true,
+    "amount": [0],
+    "volume": 0.4,
+    "sound": get_sound("tuturu"),
+    "sound_raw": "tuturu"
+  },
+  "alert_when_finished": {
+    "enabled": true,
+    "volume": 0.4,
     "sound": get_sound("ohmygah"),
     "sound_raw": "ohmygah"
   },
@@ -89,38 +122,6 @@ var settings = {
   }
 }
 */
-
-
-
-// My personal settings
-var settings = {
-  "alert_amount_transcodes": {
-    "enabled": true,
-    "amount": [0],
-    "volume": 0.4,
-    "sound": get_sound("tuturu"),
-    "sound_raw": "tuturu"
-  },
-  "alert_when_finished": {
-    "enabled": true,
-    "volume": 0.4,
-    "sound": get_sound("ohmygah"),
-    "sound_raw": "ohmygah"
-  },
-  "auto_opener": {
-    "enabled": false,
-    "triggers": [0]
-  },
-  "desktop_notifications": {
-    "alert_amount_transcodes": {
-      "enabled": true,
-      "triggers": [0]
-    },
-    "alert_when_finished": {
-     "enabled": true
-    }
-  }
-}
 
 
 var media = {
