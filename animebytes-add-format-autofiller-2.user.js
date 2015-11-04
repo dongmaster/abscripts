@@ -70,7 +70,7 @@ function auto_fill_mp3() {
   encoding_select[1].selected = true; // Because MP3 is always what I will be uploading.
   
   for (var i = 0; i < media_select.length; i++) {
-    if (media_select[i].value === info["flac_media"]) {
+    if (new RegExp(media_select[i].value).test(info["flac_media"])) {
       media_select[i].selected = true;
     }
   }
