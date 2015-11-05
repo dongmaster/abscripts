@@ -3,7 +3,7 @@
 // @namespace   animebytes.add.format.multi.uploader
 // @description This is a script that lets you add several torrents to the file selector and then uploads all torrents at the same time
 // @include     https://animebytes.tv/upload.php?type=music&groupid=*
-// @version     1
+// @version     2
 // @grant       none
 // ==/UserScript==
 

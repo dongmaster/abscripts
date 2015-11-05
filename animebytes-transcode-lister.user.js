@@ -3,7 +3,7 @@
 // @namespace   animebytes.mp3.transcodes.lister
 // @description Shows all transcodes for torrents on the FLAC conversion page
 // @include     https://animebytes.tv/torrents2.php?*action=flac_conversions*
-// @version     1
+// @version     2
 // @grant       none
 // ==/UserScript==
 

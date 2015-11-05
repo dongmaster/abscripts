@@ -3,7 +3,7 @@
 // @namespace   animebytes.add.format.autofiller
 // @description Autofills add format fields
 // @include     https://animebytes.tv/torrents2.php*
-// @version     1
+// @version     2
 // @grant       none
 // ==/UserScript==
 
