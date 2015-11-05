@@ -12,45 +12,45 @@
   ->
     {enabled} is the on/off switch for sound notifications
         It can be either true or false
-  
+
     {amount} is the threshold for when the script should notify you. 
         It can be either [0], [1] or [2].
         Super duper cool feature: You can have it notify on several numbers like this: [0, 1]
         That will notify you of all torrents with either 0 or 1 transcodes.
         Note: When selecting 2 then you will get a notification for all torrents that have 2 or more transcodes.
-        
+
     {volume} is the volume of the sound notification
         It can be a number between 0 and 1
-        Examples: 
+        Examples:
             0
             1
             0.5
             0.3
             0.7
-        
+
     {sound} is the sound that plays.
         List of sounds:
           tuturu
         Note: Only edit the text inside the quotes! 
               "tuturu" is the default so if you wanted to change it to something else,
               you would change it to "spooky" (get_sound("spooky"))
-    
-    
+
+
 -alert_when_finished- is the setting group that controls whether or not a notification should play/show when all
 torrents on the page have been searched through
   ->
     {enabled} self explanatory
-    
+
     {volume} read above {volume} description
-    
+
     {sound} read above {sound} description
-    
-    
+
+
 -auto_opener- is the settings group that controls whether or not torrents that have X amount of transcodes should
 automatically open a new tab
   ->
     {enabled} self explanatory
-    
+
     [triggers] is the amount of transcodes that should trigger the auto opener
     Try settings {triggers} to [0, 1] and watch it open new tabs for each torrent that has either 1 or 0 transcodes
     Note: This works exactly the same way as the {amount} for the -alert_amount_transcodes- settings group.
@@ -63,27 +63,32 @@ var settings = {
   "alert_amount_transcodes": {
     "enabled": false,
     "amount": [0],
+    "seeder_threshold": 0,
     "volume": 0.5,
     "sound": get_sound("tuturu"),
     "sound_raw": "tuturu"
   },
   "alert_when_finished": {
     "enabled": false,
+    "seeder_threshold": 0,
     "volume": 0.5,
     "sound": get_sound("ohmygah"),
     "sound_raw": "ohmygah"
   },
   "auto_opener": {
     "enabled": false,
-    "triggers": [0]
+    "triggers": [0],
+    "seeder_threshold": 0
   },
   "desktop_notifications": {
     "alert_amount_transcodes": {
       "enabled": true,
-      "triggers": [0]
+      "triggers": [0],
+      "seeder_threshold": 0
     },
     "alert_when_finished": {
-     "enabled": true
+     "enabled": true,
+     "seeder_threshold": 0
     }
   }
 }
@@ -168,13 +173,13 @@ var xhr = function(u, c, carryover, carryover2, t) {
 
 function scrape() {
   var torrent_links = document.getElementsByClassName("torrent");
-  
+
   var i = 0;
-  
+
   function scrape_recurse() {
     setTimeout(function() {
       var torrent_group_links = torrent_links[i].getElementsByTagName("a");
-      
+
       for (var j = 0; j < torrent_group_links.length; j++) {
         if (torrent_group_links[j].title === "View Torrent") {
           var torrent_group_link = torrent_group_links[j];
@@ -182,24 +187,24 @@ function scrape() {
       }
 
       xhr(torrent_group_link.href, some_callback, i, torrent_links.length);
-      
+
       // This is for regular usage
       if (i < torrent_links.length) {
         scrape_recurse();
       }
-      
-      
+
+
       // This is for debugging purposes
       /*
       if (i < 6) {
         scrape_recurse();
       }
       */
-      
+
       i++;
     }, 1000);
   }
-  
+
   scrape_recurse();
 }
 
@@ -208,43 +213,43 @@ function scrape() {
 function some_callback(res, index, torrent_amount, url) {
   var body = document.createElement("HTML");
   body.innerHTML = res;
-  
+
   var group_torrent = body.getElementsByClassName("group_torrent");
   var torrent_links = document.getElementsByClassName("torrent");
   var torrent = torrent_links[index].getElementsByTagName("td")[1];
-  
+
   var mp3_counter = 0;
-  
+
   for (var i = 0; i < group_torrent.length; i++) {
     var format = group_torrent[i].getElementsByTagName("td")[0].getElementsByTagName("a")[2].textContent;
-    
+
     if (/MP3/.test(format)) {
       var format_element = document.createElement("SPAN");
       var format_text_node = document.createTextNode(format);
       var br = document.createElement("BR");
-      
+
       format_element.style.fontWeight = "bold";
       format_element.appendChild(format_text_node)
-      
+
       torrent.appendChild(br);
       torrent.appendChild(format_element);
-      
+
       mp3_counter++;
     }
   }
-  
+
   var br = document.createElement("BR");
   var mp3_counter_element = document.createElement("span");
   var mp3_counter_node = document.createTextNode("Number of MP3 torrents: " + mp3_counter.toString());
-  
+
   mp3_counter_element.appendChild(mp3_counter_node);
-  
+
   /*
   #5fe75b is ZERO (0) transcodes | Green
   #f0d153 is ONE (1) transcode | Yellow
   #f74b4b is TWO (2) transcodes | Red
   */
-  
+
   if (mp3_counter === 0) {
     mp3_counter_element.style.color = "#5fe75b";
   } else if (mp3_counter === 1) {
@@ -254,10 +259,10 @@ function some_callback(res, index, torrent_amount, url) {
   } else {
     mp3_counter_element.style.color = "#f74b4b";
   }
-  
+
   torrent.appendChild(br);
   torrent.appendChild(mp3_counter_element);
-  
+
   notify_transcode_amount(mp3_counter);
   notify_finish(torrent_amount, index);
   auto_opener(mp3_counter, url);
@@ -279,18 +284,18 @@ function notify_transcode_amount(mp3_counter) {
   var transcode_desktop_notifications_enabled = settings["desktop_notifications"]["alert_amount_transcodes"]["enabled"];
   var transcode_desktop_notifications_triggers = settings["desktop_notifications"]["alert_amount_transcodes"]["triggers"];
   var amount_transcodes_threshold = settings["alert_amount_transcodes"]["amount"];
-  
+
   console.log((mp3_counter === amount_transcodes_threshold[i] || amount_transcodes_threshold[i] > 2) && transcode_sound_notifications_enabled === true);
-  
+
   for (var i = 0; i < amount_transcodes_threshold.length; i++) {
     if ((mp3_counter === amount_transcodes_threshold[i] || amount_transcodes_threshold[i] > 2) && transcode_sound_notifications_enabled === true) {
       audioplayer.src = settings["alert_amount_transcodes"]["sound"];
       audioplayer.volume = settings["alert_amount_transcodes"]["volume"];
       audioplayer.load();
       audioplayer.play();
-    } 
+    }
   }
-  
+
   for (var j = 0; j < transcode_desktop_notifications_triggers.length; j++) {
     if ((mp3_counter === transcode_desktop_notifications_triggers[j] || transcode_desktop_notifications_triggers[j] > 2) && transcode_desktop_notifications_enabled === true) {
       notify("Found a torrent with " + mp3_counter + " transcodes", "AnimeBytes");
@@ -301,15 +306,15 @@ function notify_transcode_amount(mp3_counter) {
 function notify_finish(torrent_amount, index) {
   var finish_sound_notifications_enabled = settings["alert_when_finished"]["enabled"];
   var finish_desktop_notifications_enabled = settings["desktop_notifications"]["alert_when_finished"]["enabled"];
-  
+
   if (torrent_amount - 1 === index && finish_sound_notifications_enabled === true) {
     audioplayer.src = settings["alert_when_finished"]["sound"];
     audioplayer.volume = settings["alert_when_finished"]["volume"];
     audioplayer.load();
     audioplayer.play();
   }
-  
-  if (torrent_amount - 1 === index && transcode_desktop_notifications_enabled === true) {
+
+  if (torrent_amount - 1 === index && finish_desktop_notifications_enabled === true) {
     notify("Finished searching the page", "AnimeBytes")
   }
 }
@@ -317,7 +322,7 @@ function notify_finish(torrent_amount, index) {
 function auto_opener(mp3_counter, url) {
   var auto_opener_enabled = settings["auto_opener"]["enabled"];
   var auto_opener_triggers = settings["auto_opener"]["triggers"];
-  
+
   for (var k = 0; k < auto_opener_triggers.length; k++) {
     if (mp3_counter === auto_opener_triggers[k] && auto_opener_enabled === true) {
       window.open(url, "_blank");
@@ -331,7 +336,7 @@ function notify(body_text, title_text) {
         body: theBody,
         icon: theIcon
     }
-    
+
     var n = new Notification(theTitle,options);
   }
 
@@ -342,10 +347,10 @@ function create_settings_menu() {
   // This is the navigation element with links to all the numbered pages. Note: Top element, not bottom.
   var pages = document.getElementById("torrent_table");
   var pages_parent = pages.parentNode;
-  
+
   var settings_menu_container = create_element("DIV");
-  
-  
+
+
   var settings_menu = "<h3>Alert at X amount of transcodes</h3>" +
       "<label> Enabled: <input id='transcode_amount_alert_enabled' type='checkbox' /> </label>" +
       "<br>" +
@@ -355,7 +360,7 @@ function create_settings_menu() {
       "<br>" +
       "Sound: <input id='transcode_amount_alert_sound_raw' type='text' />" +
       "<br>" +
-      
+
       "<br>" +
       "<h3>Alert when finished</h3>" +
       "<label> Enabled: <input id='alert_when_finished_enabled' type='checkbox' /> </label>" +
@@ -364,7 +369,7 @@ function create_settings_menu() {
       "<br>" +
       "Sound: <input id='alert_when_finished_sound_raw' type='text' />" +
       "<br>" +
-      
+
       "<br>" +
       "<h3>Auto opener</h3>" +
       "<label> Enabled: <input id='auto_opener_enabled' type='checkbox' /> </label>" +
@@ -373,7 +378,7 @@ function create_settings_menu() {
       "<br>" +
       '<span>Comma separated. Example: "0,1" (without quotes) will target torrent groups with 0 and 1 transcodes</span>' +
       "<br>" +
-      
+
       "<br>" +
       "<h3>Desktop notifications</h3>" +
       "<h4>Notify at X amount transcodes</h4>" + 
@@ -383,7 +388,7 @@ function create_settings_menu() {
       "<br>" +
       '<span>Comma separated. Example: "0,1" (without quotes) will target torrent groups with 0 and 1 transcodes</span>' +
       "<br>" +
-      
+
       "<h4>Notify when finished</h4>" +
       "<label> Enabled: <input id='desktop_notifications_awf_enabled' type='checkbox' /> </label>" +
       "<br>" +
@@ -392,9 +397,9 @@ function create_settings_menu() {
       "<br>" +
       "<br>" +
       "<input id='scrape_button' type='button' value='Show transcodes' />";
-  
+
   settings_menu_container.innerHTML = settings_menu;
-  
+
   var br = create_element("BR");
   pages_parent.insertBefore(br, pages);
   pages_parent.insertBefore(settings_menu_container, pages);
@@ -405,160 +410,160 @@ function initialize_settings() {
     TRANSCODE AMOUNT ALERT
   */
   var taa = "transcode_amount_alert_";
-  
+
   var taa_enabled = document.getElementById(taa + "enabled");
   var taa_amount = document.getElementById(taa + "amount");
   var taa_volume = document.getElementById(taa + "volume");
   var taa_sound = document.getElementById(taa + "sound_raw");
-  
+
   taa_enabled.checked = settings["alert_amount_transcodes"]["enabled"];
   taa_amount.value = settings["alert_amount_transcodes"]["amount"];
   taa_volume.value = settings["alert_amount_transcodes"]["volume"];
   taa_sound.value = settings["alert_amount_transcodes"]["sound_raw"];
-  
-  
+
+
   /*
     ALERT WHEN FINISHED
   */
-  
+
   var awf = "alert_when_finished_";
-  
+
   var awf_enabled = document.getElementById(awf + "enabled");
   var awf_volume = document.getElementById(awf + "volume");
   var awf_sound = document.getElementById(awf + "sound_raw");
-  
+
   var awfs = settings["alert_when_finished"];
-  
+
   awf_enabled.checked = awfs["enabled"];
   awf_volume.value = awfs["volume"];
   awf_sound.value = awfs["sound_raw"];
-  
-  
+
+
   /*
     AUTO OPENER
   */
-  
+
   var ao = "auto_opener_";
-  
+
   var ao_enabled = document.getElementById(ao + "enabled");
   var ao_triggers = document.getElementById(ao + "triggers")
-  
+
   var aos = settings["auto_opener"];
-  
+
   ao_enabled.checked = aos["enabled"];
   ao_triggers.value = aos["triggers"];
-  
-  
+
+
   /*
     DESKTOP NOTIFICATIONS
   */
-  
+
   // AAT
   var dnaat = "desktop_notifications_aat_";
-  
+
   var dnaat_enabled = document.getElementById(dnaat + "enabled");
   var dnaat_triggers = document.getElementById(dnaat + "triggers");
-  
+
   var dnaats = settings["desktop_notifications"]["alert_amount_transcodes"];
-  
+
   dnaat_enabled.checked = dnaats["enabled"];
   dnaat_triggers.value = dnaats["triggers"];
-  
+
   // AWF
-  
+
   var dnawf = "desktop_notifications_awf_";
-  
+
   var dnawf_enabled = document.getElementById(dnawf + "enabled");
-  
+
   var dnawfs = settings["desktop_notifications"]["alert_when_finished"];
-  
+
   dnawf_enabled.checked = dnawfs["enabled"];
-  
+
   var save_settings_button = document.getElementById("save_settings");
-  
+
   save_settings_button.addEventListener("click", function() {
     save_settings();
     window.location.reload();
   }, true);
-  
+
 }
 
 function save_settings() {
   var taa = "transcode_amount_alert_";
-  
+
   var taa_enabled = document.getElementById(taa + "enabled");
   var taa_amount = document.getElementById(taa + "amount");
   var taa_volume = document.getElementById(taa + "volume");
   var taa_sound_raw = document.getElementById(taa + "sound_raw");
-  
+
   var taas = settings["alert_amount_transcodes"];
-  
+
   var awf = "alert_when_finished_";
-  
+
   var awf_enabled = document.getElementById(awf + "enabled");
   var awf_volume = document.getElementById(awf + "volume");
   var awf_sound_raw = document.getElementById(awf + "sound_raw");
-  
+
   var awfs = settings["alert_when_finished"];
-  
+
   /*
     AUTO OPENER
   */
-  
+
   var ao = "auto_opener_";
-  
+
   var ao_enabled = document.getElementById(ao + "enabled");
   var ao_triggers = document.getElementById(ao + "triggers")
-  
+
   var aos = settings["auto_opener"];
-  
+
   /*
     DESKTOP NOTIFICATIONS
   */
-  
+
   // AAT
   var dnaat = "desktop_notifications_aat_";
-  
+
   var dnaat_enabled = document.getElementById(dnaat + "enabled");
   var dnaat_triggers = document.getElementById(dnaat + "triggers");
-  
+
   var dnaats = settings["desktop_notifications"]["alert_amount_transcodes"];
-  
+
   // AWF
-  
+
   var dnawf = "desktop_notifications_awf_";
-  
+
   var dnawf_enabled = document.getElementById(dnawf + "enabled");
-  
+
   var dnawfs = settings["desktop_notifications"]["alert_when_finished"];
-  
-  
+
+
   taas["enabled"] = taa_enabled.checked;
   taas["amount"] = parseFloat(taa_amount.value);
   taas["volume"] = parseFloat(taa_volume.value);
   taas["sound"] = get_sound(taa_sound_raw.value);
   taas["sound_raw"] = taa_sound_raw.value;
-  
+
   awfs["enabled"] = awf_enabled.checked;
   awfs["volume"] = parseFloat(awf_volume.value);
   awfs["sound"] = get_sound(awf_sound_raw.value);
   awfs["sound_raw"] = awf_sound_raw.value;
-  
+
   aos["enabled"] = ao_enabled.checked;
   aos["triggers"] = ao_triggers.value.split(",");
-  
+
   dnaats["enabled"] = dnaat_enabled.checked;
   dnaats["triggers"] = dnaat_triggers.value.split(",");
-  
+
   dnawfs["enabled"] = dnawf_enabled.checked;
-  
+
   save("userscript_transcode_lister_settings", settings);
 }
 
 function create_element(elem) {
   // Might be a redundant function
   var element = document.createElement(elem);
-  
+
   return element;
 }
 
