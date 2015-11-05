@@ -133,9 +133,11 @@ var media = {
 Notification.requestPermission();
 
 load_settings();
-console.log(settings);
+create_settings_menu();
+initialize_settings();
 
-var clickable = document.getElementById("content").getElementsByTagName("h2")[0];
+//var clickable = document.getElementById("content").getElementsByTagName("h2")[0];
+var clickable = document.getElementById("scrape_button");
 
 var sound = settings["alert_amount_transcodes"]["sound"];
 
@@ -147,8 +149,7 @@ document.body.appendChild(audioplayer);
 
 audioplayer.load();
 
-create_settings_menu();
-initialize_settings();
+
 
 var xhr = function(u, c, carryover, carryover2, t) {
 	var r = new XMLHttpRequest();
@@ -387,7 +388,10 @@ function create_settings_menu() {
       "<label> Enabled: <input id='desktop_notifications_awf_enabled' type='checkbox' /> </label>" +
       "<br>" +
       "<br>" +
-      "<input id='save_settings' type='button' value='Save settings' />";
+      "<input id='save_settings' type='button' value='Save settings' />" +
+      "<br>" +
+      "<br>" +
+      "<input id='scrape_button' type='button' value='Show transcodes' />";
   
   settings_menu_container.innerHTML = settings_menu;
   
