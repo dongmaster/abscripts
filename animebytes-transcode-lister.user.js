@@ -70,7 +70,6 @@ var settings = {
   },
   "alert_when_finished": {
     "enabled": false,
-    "seeder_threshold": 0,
     "volume": 0.5,
     "sound": get_sound("ohmygah"),
     "sound_raw": "ohmygah"
@@ -156,11 +155,12 @@ audioplayer.load();
 
 
 
-var xhr = function(u, c, carryover, carryover2, t) {
+var xhr = function(u, c, carryover, carryover2, seeds, t) {
 	var r = new XMLHttpRequest();
 	r.onreadystatechange = function() {
 		if (r.readyState == 4 && r.status == 200) {
-			c(r.response, carryover, carryover2, u);
+      console.log(seeds);
+			c(r.response, carryover, carryover2, seeds, u);
 		}
 	};
 	r.open("GET", u, true);
@@ -186,7 +186,10 @@ function scrape() {
         }
       }
 
-      xhr(torrent_group_link.href, some_callback, i, torrent_links.length);
+      var seeds = get_amount_of_seeds(torrent_links[i]);
+
+
+      xhr(torrent_group_link.href, some_callback, i, torrent_links.length, seeds);
 
       // This is for regular usage
       if (i < torrent_links.length) {
@@ -208,9 +211,22 @@ function scrape() {
   scrape_recurse();
 }
 
+function get_amount_of_seeds(torrent_group) {
+  var td = torrent_group.getElementsByTagName("td");
 
+  var td_noclass = [];
 
-function some_callback(res, index, torrent_amount, url) {
+  for (var i = 0; i < td.length; i++) {
+    if (td[i].hasAttribute("class") === false) {
+      td_noclass.push(td[i]);
+    }
+  }
+
+  return parseInt(td_noclass[2].textContent);
+}
+
+function some_callback(res, index, torrent_amount, seeds, url) {
+  
   var body = document.createElement("HTML");
   body.innerHTML = res;
 
@@ -263,9 +279,9 @@ function some_callback(res, index, torrent_amount, url) {
   torrent.appendChild(br);
   torrent.appendChild(mp3_counter_element);
 
-  notify_transcode_amount(mp3_counter);
+  notify_transcode_amount(mp3_counter, seeds);
   notify_finish(torrent_amount, index);
-  auto_opener(mp3_counter, url);
+  auto_opener(mp3_counter, url, seeds);
 }
 
 function get_sound(id) {
@@ -279,25 +295,40 @@ function get_sound(id) {
   }
 }
 
-function notify_transcode_amount(mp3_counter) {
+function notify_transcode_amount(mp3_counter, seeds) {
   var transcode_sound_notifications_enabled = settings["alert_amount_transcodes"]["enabled"];
   var transcode_desktop_notifications_enabled = settings["desktop_notifications"]["alert_amount_transcodes"]["enabled"];
   var transcode_desktop_notifications_triggers = settings["desktop_notifications"]["alert_amount_transcodes"]["triggers"];
   var amount_transcodes_threshold = settings["alert_amount_transcodes"]["amount"];
 
-  console.log((mp3_counter === amount_transcodes_threshold[i] || amount_transcodes_threshold[i] > 2) && transcode_sound_notifications_enabled === true);
+  // aat = alert_amount_transcodes
+  var aat_seed_threshold = settings["alert_amount_transcodes"]["seeder_threshold"];
+  // dnaat = desktop notificaions + alert_amount_transcodes
+  var dnaat_seed_threshold = settings["desktop_notifications"]["alert_amount_transcodes"]["seeder_threshold"];
 
-  for (var i = 0; i < amount_transcodes_threshold.length; i++) {
-    if ((mp3_counter === amount_transcodes_threshold[i] || amount_transcodes_threshold[i] > 2) && transcode_sound_notifications_enabled === true) {
+  //console.log("THRESHOLD", amount_transcodes_threshold);
+
+  //console.log((mp3_counter === amount_transcodes_threshold[i] || amount_transcodes_threshold[i] > 2) && transcode_sound_notifications_enabled === true);
+
+  //console.log(seeds >= aat_seed_threshold, seeds, typeof aat_seed_threshold);
+  //console.log("fuck", amount_transcodes_threshold, amount_transcodes_threshold.length);
+
+  //console.log("fuck", transcode_desktop_notifications_triggers.length, transcode_desktop_notifications_triggers);
+  //console.log((mp3_counter === parseInt(transcode_desktop_notifications_triggers[j]) || transcode_desktop_notifications_triggers[j] > 2) && transcode_desktop_notifications_enabled === true);
+
+  //for (var i = 0; i < amount_transcodes_threshold.length; i++) {
+    //console.log("sound ", (mp3_counter === amount_transcodes_threshold[i] || amount_transcodes_threshold[i] > 2) && transcode_sound_notifications_enabled === true && seeds >= aat_seed_threshold);
+    //console.log("sound ", (mp3_counter === amount_transcodes_threshold[i], amount_transcodes_threshold[i] > 2), transcode_sound_notifications_enabled === true, seeds >= aat_seed_threshold)
+    if ((mp3_counter <= amount_transcodes_threshold || amount_transcodes_threshold > 2) && transcode_sound_notifications_enabled === true && seeds >= aat_seed_threshold) {
       audioplayer.src = settings["alert_amount_transcodes"]["sound"];
       audioplayer.volume = settings["alert_amount_transcodes"]["volume"];
       audioplayer.load();
       audioplayer.play();
     }
-  }
+  //}
 
   for (var j = 0; j < transcode_desktop_notifications_triggers.length; j++) {
-    if ((mp3_counter === transcode_desktop_notifications_triggers[j] || transcode_desktop_notifications_triggers[j] > 2) && transcode_desktop_notifications_enabled === true) {
+    if ((mp3_counter === parseInt(transcode_desktop_notifications_triggers[j]) || transcode_desktop_notifications_triggers[j] > 2) && transcode_desktop_notifications_enabled === true && seeds >= dnaat_seed_threshold) {
       notify("Found a torrent with " + mp3_counter + " transcodes", "AnimeBytes");
     }
   }
@@ -319,13 +350,19 @@ function notify_finish(torrent_amount, index) {
   }
 }
 
-function auto_opener(mp3_counter, url) {
+function auto_opener(mp3_counter, url, seeds) {
   var auto_opener_enabled = settings["auto_opener"]["enabled"];
   var auto_opener_triggers = settings["auto_opener"]["triggers"];
 
+  // ao = alert_amount_transcodes
+  var ao_seed_threshold = settings["auto_opener"]["seeder_threshold"];
+
+  var opened = false;
+
   for (var k = 0; k < auto_opener_triggers.length; k++) {
-    if (mp3_counter === auto_opener_triggers[k] && auto_opener_enabled === true) {
+    if (mp3_counter === parseInt(auto_opener_triggers[k]) && auto_opener_enabled === true && opened === false && seeds >= ao_seed_threshold) {
       window.open(url, "_blank");
+      opened = true;
     }
   }
 }
@@ -356,6 +393,8 @@ function create_settings_menu() {
       "<br>" +
       "Amount: <input id='transcode_amount_alert_amount' type='text' /> " +
       "<br>" +
+      "Amount of seeds threshold: <input id='transcode_amount_alert_seeder_threshold' type='text' /> " +
+      "<br>" +
       "Volume: <input id='transcode_amount_alert_volume' type='text' />" +
       "<br>" +
       "Sound: <input id='transcode_amount_alert_sound_raw' type='text' />" +
@@ -378,15 +417,19 @@ function create_settings_menu() {
       "<br>" +
       '<span>Comma separated. Example: "0,1" (without quotes) will target torrent groups with 0 and 1 transcodes</span>' +
       "<br>" +
+      "Amount of seeds threshold: <input id='auto_opener_seeder_threshold' type='text' />" +
+      "<br>" +
 
       "<br>" +
       "<h3>Desktop notifications</h3>" +
-      "<h4>Notify at X amount transcodes</h4>" + 
+      "<h4>Notify at X amount transcodes</h4>" +
       "<label> Enabled: <input id='desktop_notifications_aat_enabled' type='checkbox' /> </label>" +
       "<br>" +
       "Triggers: <input id='desktop_notifications_aat_triggers' type='text' />" +
       "<br>" +
       '<span>Comma separated. Example: "0,1" (without quotes) will target torrent groups with 0 and 1 transcodes</span>' +
+      "<br>" +
+      "Amount of seeds threshold: <input id='desktop_notifications_aat_seeder_threshold' type='text' />" +
       "<br>" +
 
       "<h4>Notify when finished</h4>" +
@@ -413,11 +456,19 @@ function initialize_settings() {
 
   var taa_enabled = document.getElementById(taa + "enabled");
   var taa_amount = document.getElementById(taa + "amount");
+  var taa_seeder_threshold = document.getElementById(taa + "seeder_threshold");
   var taa_volume = document.getElementById(taa + "volume");
   var taa_sound = document.getElementById(taa + "sound_raw");
 
   taa_enabled.checked = settings["alert_amount_transcodes"]["enabled"];
   taa_amount.value = settings["alert_amount_transcodes"]["amount"];
+
+  if (settings["alert_amount_transcodes"]["seeder_threshold"] !== undefined) {
+    taa_seeder_threshold.value = settings["alert_amount_transcodes"]["seeder_threshold"];
+  } else {
+    taa_seeder_threshold.value = 0;
+  }
+
   taa_volume.value = settings["alert_amount_transcodes"]["volume"];
   taa_sound.value = settings["alert_amount_transcodes"]["sound_raw"];
 
@@ -439,6 +490,8 @@ function initialize_settings() {
   awf_sound.value = awfs["sound_raw"];
 
 
+
+
   /*
     AUTO OPENER
   */
@@ -447,12 +500,18 @@ function initialize_settings() {
 
   var ao_enabled = document.getElementById(ao + "enabled");
   var ao_triggers = document.getElementById(ao + "triggers")
+  var ao_seeder_threshold = document.getElementById(ao + "seeder_threshold");
 
   var aos = settings["auto_opener"];
 
   ao_enabled.checked = aos["enabled"];
   ao_triggers.value = aos["triggers"];
 
+  if (aos["seeder_threshold"] !== undefined) {
+    ao_seeder_threshold.value = aos["seeder_threshold"];
+  } else {
+    ao_seeder_threshold.value = 0;
+  }
 
   /*
     DESKTOP NOTIFICATIONS
@@ -463,11 +522,18 @@ function initialize_settings() {
 
   var dnaat_enabled = document.getElementById(dnaat + "enabled");
   var dnaat_triggers = document.getElementById(dnaat + "triggers");
+  var dnaat_seeder_threshold = document.getElementById(dnaat + "seeder_threshold");
 
   var dnaats = settings["desktop_notifications"]["alert_amount_transcodes"];
 
   dnaat_enabled.checked = dnaats["enabled"];
   dnaat_triggers.value = dnaats["triggers"];
+
+  if (dnaats["seeder_threshold"] !== undefined) {
+    dnaat_seeder_threshold.value = dnaats["seeder_threshold"];
+  } else {
+    dnaat_seeder_threshold.value = 0;
+  }
 
   // AWF
 
@@ -493,6 +559,7 @@ function save_settings() {
 
   var taa_enabled = document.getElementById(taa + "enabled");
   var taa_amount = document.getElementById(taa + "amount");
+  var taa_seeder_threshold = document.getElementById(taa + "seeder_threshold");
   var taa_volume = document.getElementById(taa + "volume");
   var taa_sound_raw = document.getElementById(taa + "sound_raw");
 
@@ -514,6 +581,7 @@ function save_settings() {
 
   var ao_enabled = document.getElementById(ao + "enabled");
   var ao_triggers = document.getElementById(ao + "triggers")
+  var ao_seeder_threshold = document.getElementById(ao + "seeder_threshold");
 
   var aos = settings["auto_opener"];
 
@@ -526,6 +594,7 @@ function save_settings() {
 
   var dnaat_enabled = document.getElementById(dnaat + "enabled");
   var dnaat_triggers = document.getElementById(dnaat + "triggers");
+  var dnaat_seeder_threshold = document.getElementById(dnaat + "seeder_threshold");
 
   var dnaats = settings["desktop_notifications"]["alert_amount_transcodes"];
 
@@ -541,6 +610,7 @@ function save_settings() {
   taas["enabled"] = taa_enabled.checked;
   taas["amount"] = parseFloat(taa_amount.value);
   taas["volume"] = parseFloat(taa_volume.value);
+  taas["seeder_threshold"] = parseInt(taa_seeder_threshold.value);
   taas["sound"] = get_sound(taa_sound_raw.value);
   taas["sound_raw"] = taa_sound_raw.value;
 
@@ -551,9 +621,11 @@ function save_settings() {
 
   aos["enabled"] = ao_enabled.checked;
   aos["triggers"] = ao_triggers.value.split(",");
+  aos["seeder_threshold"] = parseInt(ao_seeder_threshold.value);
 
   dnaats["enabled"] = dnaat_enabled.checked;
   dnaats["triggers"] = dnaat_triggers.value.split(",");
+  dnaats["seeder_threshold"] = parseInt(dnaat_seeder_threshold.value);
 
   dnawfs["enabled"] = dnawf_enabled.checked;
 
