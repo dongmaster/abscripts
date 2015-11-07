@@ -3,7 +3,7 @@
 // @namespace   animebytes.mp3.transcodes.lister
 // @description Shows all transcodes for torrents on the FLAC conversion page
 // @include     https://animebytes.tv/torrents2.php?*action=flac_conversions*
-// @version     2
+// @version     3
 // @grant       none
 // ==/UserScript==
 
@@ -79,6 +79,11 @@ var settings = {
     "triggers": [0],
     "seeder_threshold": 0
   },
+  "auto_download": {
+    "enabled": false,
+    "triggers": [0],
+    "seeder_threshold": 0
+  },
   "desktop_notifications": {
     "alert_amount_transcodes": {
       "enabled": true,
@@ -89,10 +94,48 @@ var settings = {
      "enabled": true,
      "seeder_threshold": 0
     }
-  }
+  },
+  "version": 3
 }
 
-
+var def_settings = {
+  "alert_amount_transcodes": {
+    "enabled": false,
+    "amount": [0],
+    "seeder_threshold": 0,
+    "volume": 0.5,
+    "sound": get_sound("tuturu"),
+    "sound_raw": "tuturu"
+  },
+  "alert_when_finished": {
+    "enabled": false,
+    "volume": 0.5,
+    "sound": get_sound("ohmygah"),
+    "sound_raw": "ohmygah"
+  },
+  "auto_opener": {
+    "enabled": false,
+    "triggers": [0],
+    "seeder_threshold": 0
+  },
+  "auto_download": {
+    "enabled": false,
+    "triggers": [0],
+    "seeder_threshold": 0
+  },
+  "desktop_notifications": {
+    "alert_amount_transcodes": {
+      "enabled": true,
+      "triggers": [0],
+      "seeder_threshold": 0
+    },
+    "alert_when_finished": {
+     "enabled": true,
+     "seeder_threshold": 0
+    }
+  },
+  "version": 3
+}
 
 
 // My personal settings
@@ -140,6 +183,13 @@ load_settings();
 create_settings_menu();
 initialize_settings();
 
+var save_settings_button = document.getElementById("save_settings");
+
+save_settings_button.addEventListener("click", function() {
+  save_settings();
+  window.location.reload();
+}, true);
+
 //var clickable = document.getElementById("content").getElementsByTagName("h2")[0];
 var clickable = document.getElementById("scrape_button");
 
@@ -155,12 +205,12 @@ audioplayer.load();
 
 
 
-var xhr = function(u, c, carryover, carryover2, seeds, t) {
+var xhr = function(u, c, carryover, carryover2, seeds, download_link, t) {
 	var r = new XMLHttpRequest();
 	r.onreadystatechange = function() {
 		if (r.readyState == 4 && r.status == 200) {
       console.log(seeds);
-			c(r.response, carryover, carryover2, seeds, u);
+			c(r.response, carryover, carryover2, seeds, download_link, u);
 		}
 	};
 	r.open("GET", u, true);
@@ -187,9 +237,10 @@ function scrape() {
       }
 
       var seeds = get_amount_of_seeds(torrent_links[i]);
+      var download_link = get_download_link(torrent_links[i]);
 
 
-      xhr(torrent_group_link.href, some_callback, i, torrent_links.length, seeds);
+      xhr(torrent_group_link.href, some_callback, i, torrent_links.length, seeds, download_link);
 
       // This is for regular usage
       if (i < torrent_links.length) {
@@ -225,8 +276,16 @@ function get_amount_of_seeds(torrent_group) {
   return parseInt(td_noclass[2].textContent);
 }
 
-function some_callback(res, index, torrent_amount, seeds, url) {
-  
+
+function get_download_link(torrent_group) {
+  var dl_link = torrent_group.getElementsByClassName("download_link")[0].getElementsByTagName("a")[0].href;
+
+  return dl_link;
+}
+
+
+function some_callback(res, index, torrent_amount, seeds, download_link, url) {
+
   var body = document.createElement("HTML");
   body.innerHTML = res;
 
@@ -282,6 +341,7 @@ function some_callback(res, index, torrent_amount, seeds, url) {
   notify_transcode_amount(mp3_counter, seeds);
   notify_finish(torrent_amount, index);
   auto_opener(mp3_counter, url, seeds);
+  auto_downloader(mp3_counter, download_link, seeds);
 }
 
 function get_sound(id) {
@@ -367,6 +427,21 @@ function auto_opener(mp3_counter, url, seeds) {
   }
 }
 
+function auto_downloader(mp3_counter, download_link, seeds) {
+  var ads = settings["auto_downloader"];
+  var ad_enabled = ads["enabled"];
+  var ad_triggers = ads["triggers"];
+  var ad_seeder_threshold = ads["seeder_threshold"]
+
+  for (var i = 0; i < ad_triggers.length; i++) {
+    console.log(ad_enabled === true && parseInt(ad_triggers[i]) === mp3_counter && seeds >= ad_seeder_threshold);
+    console.log(ad_enabled, parseInt(ad_triggers[i]), mp3_counter, seeds, ad_seeder_threshold);
+    if (ad_enabled === true && parseInt(ad_triggers[i]) === mp3_counter && seeds >= ad_seeder_threshold) {
+      window.open(download_link);
+    }
+  }
+}
+
 function notify(body_text, title_text) {
   function spawnNotification(theBody,theIcon,theTitle) {
     var options = {
@@ -418,6 +493,17 @@ function create_settings_menu() {
       '<span>Comma separated. Example: "0,1" (without quotes) will target torrent groups with 0 and 1 transcodes</span>' +
       "<br>" +
       "Amount of seeds threshold: <input id='auto_opener_seeder_threshold' type='text' />" +
+      "<br>" +
+
+      "<br>" +
+      "<h3>Auto downloader</h3>" +
+      "<label> Enabled: <input id='auto_downloader_enabled' type='checkbox' /> </label>" +
+      "<br>" +
+      "Triggers: <input id='auto_downloader_triggers' type='text' />" +
+      "<br>" +
+      '<span>Comma separated. Example: "0,1" (without quotes) will target torrent groups with 0 and 1 transcodes</span>' +
+      "<br>" +
+      "Amount of seeds threshold: <input id='auto_downloader_seeder_threshold' type='text' />" +
       "<br>" +
 
       "<br>" +
@@ -513,6 +599,56 @@ function initialize_settings() {
     ao_seeder_threshold.value = 0;
   }
 
+
+
+
+  /*
+    AUTO DOWNLOADER
+  */
+
+
+  var autod = "auto_downloader_";
+
+  var autod_enabled = document.getElementById(autod + "enabled");
+  var autod_triggers = document.getElementById(autod + "triggers");
+  var autod_seeder_threshold = document.getElementById(autod + "seeder_threshold");
+
+  var autods = settings["auto_downloader"];
+
+  if (autods !== undefined) {
+    autod_enabled.checked = autods["enabled"];
+    autod_triggers.value = autods["triggers"];
+    autod_seeder_threshold.value = autods["seeder_threshold"];
+  } else {
+    autod_enabled.checked = false;
+    autod_triggers.value = "0";
+    autod_seeder_threshold.value = 0;
+
+    settings["auto_downloader"] = def_settings["auto_download"];
+  }
+
+  /*
+  if (autods !== undefined) {
+    autod_enabled.checked = autods["enabled"];
+  } else {
+    autod_enabled.checked = false;
+  }
+
+  if (autods !== undefined) {
+    autod_triggers.value = autods["triggers"];
+  } else {
+    autod_triggers.value = "0";
+  }
+
+  if (autods !== undefined) {
+    autod_seeder_threshold.value = autods["seeder_threshold"];
+  } else {
+    autod_seeder_threshold.value = 0;
+  }
+  */
+
+
+
   /*
     DESKTOP NOTIFICATIONS
   */
@@ -545,13 +681,7 @@ function initialize_settings() {
 
   dnawf_enabled.checked = dnawfs["enabled"];
 
-  var save_settings_button = document.getElementById("save_settings");
-
-  save_settings_button.addEventListener("click", function() {
-    save_settings();
-    window.location.reload();
-  }, true);
-
+  save_settings();
 }
 
 function save_settings() {
@@ -584,6 +714,20 @@ function save_settings() {
   var ao_seeder_threshold = document.getElementById(ao + "seeder_threshold");
 
   var aos = settings["auto_opener"];
+
+
+  /*
+    AUTO DOWNLOADER
+  */
+
+  var autod = "auto_downloader_";
+
+  var autod_enabled = document.getElementById(autod + "enabled");
+  var autod_triggers = document.getElementById(autod + "triggers");
+  var autod_seeder_threshold = document.getElementById(autod + "seeder_threshold");
+
+  var autods = settings["auto_downloader"];
+
 
   /*
     DESKTOP NOTIFICATIONS
@@ -623,6 +767,10 @@ function save_settings() {
   aos["triggers"] = ao_triggers.value.split(",");
   aos["seeder_threshold"] = parseInt(ao_seeder_threshold.value);
 
+  autods["enabled"] = autod_enabled.checked;
+  autods["triggers"] = autod_triggers.value.split(",");
+  autods["seeder_threshold"] = parseInt(autod_seeder_threshold.value);
+
   dnaats["enabled"] = dnaat_enabled.checked;
   dnaats["triggers"] = dnaat_triggers.value.split(",");
   dnaats["seeder_threshold"] = parseInt(dnaat_seeder_threshold.value);
@@ -630,6 +778,10 @@ function save_settings() {
   dnawfs["enabled"] = dnawf_enabled.checked;
 
   save("userscript_transcode_lister_settings", settings);
+
+  if (settings["version"] !== load("userscript_transcode_lister_settings")["version"]) {
+    window.location.reload();
+  }
 }
 
 function create_element(elem) {
