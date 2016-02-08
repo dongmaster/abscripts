@@ -10,7 +10,7 @@
 
 var config = {
     "media": ["CD", "DVD", "Bluray", "Vinyl", "Soundboard", "Web"],
-    "bitrate": ["192", "V2 (VBR)", "256", "V0 (VBR)", "320", "Lossless", "Lossless 24-bit"],
+    "bitrate": ["", "192", "V2 (VBR)", "256", "V0 (VBR)", "320", "Lossless", "Lossless 24-bit"],
 }
 
 var files = [];
